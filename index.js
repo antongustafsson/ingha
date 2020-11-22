@@ -1,180 +1,122 @@
-const fetch = require('node-fetch');
-const md5 = require('./md5');
 const express = require('express');
+const inghaApi = require('./ingha-api');
+const fs = require('fs');
+const app = express();
 
-const getleader = async () => await (await fetch('https://games.app.ingoapp.com/api/games/2/leaderboard?period_id=216')).json();
-const cookie = 'PHPSESSID=vdvu9rr50jdhshgge8boj05g25';
-const headers = {
-    cookie,
-    'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_1_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.1 Mobile/15E148 Safari/604.1',
-    'Origin': 'https://games.app.ingoapp.com',
-    'Host': 'games.app.ingoapp.com',
-    'Referer': 'https://games.app.ingoapp.com/games/?token=nbzKR7TXmhVh7+tvudSjZ5AGj/GmSjuAzdSlIp4V89Vxn6uBWg0z+7zrs/7GsgztkUK75QB0vDpkwAPXvmsYkmaxXUnnEC3wB+5nnpYv2vU%3D&region=se&language=sv',
-    'X-Requested-With': 'XMLHttpRequest'
-};
-const update = async () => {
-    const resp = await fetch('https://games.app.ingoapp.com/api/users/update', {
-        method: 'PATCH',
-        headers
+app.use(express.static('public'));
+
+// app.get('/', (req, res) => {
+//     res.send(fs.readFileSync('./static/index.html').toString());
+// });
+app.get('/options', (req, res) => {
+    res.writeHead(200, {
+        'Content-Type': 'text/plain',
+        'Transfer-Encoding': 'chunked'
     });
-
-    return (await resp.json()).status;
-};
-
-const addAtt = async () => {
-    const resp = await fetch('https://games.app.ingoapp.com/api/games/2/attempts/add', {
-        method: 'POST',
-        headers: { ...headers, 'content-type': 'application/json', },
-        body: JSON.stringify({ "game_id": 2, "period_id": 216 }),
-    });
-
-    return (await resp.json()).status;
-};
-
-const updateAtt = async (score) => {
-    const hist = genHist(score);
-    console.log('hist', hist);
-    const resp = await fetch('https://games.app.ingoapp.com/api/games/2/attempts/update', {
-        method: 'PATCH',
-        headers: { ...headers, 'content-type': 'application/json', },
-        body: JSON.stringify(hist),
-    });
-
-    return await resp.json();
-}
-
-function hashFunc(string) {
-    return md5(string).toString();
-}
-
-const genHist = (score) => {
-    const salt = "ingoChallenge2018";
-    const base = {
-        "game_id": 2,
-        "score": "21.04100000000003",
-        "hash": "",
-        "attempt_data": [
-            {
-                "eventId": 9,
-                "time": 1.209,
-                "game_id": 2
-            },
-            {
-                "eventId": 2,
-                "time": 2.612,
-                "game_id": 2
-            },
-            {
-                "eventId": 2,
-                "time": 5.214999999999997,
-                "game_id": 2
-            },
-            {
-                "eventId": 9,
-                "time": 7.120000000000003,
-                "game_id": 2
-            },
-            {
-                "eventId": 2,
-                "time": 7.922999999999995,
-                "game_id": 2
-            },
-            {
-                "eventId": 2,
-                "time": 10.52599999999999,
-                "game_id": 2
-            },
-            {
-                "eventId": 4,
-                "time": 10.725999999999988,
-                "game_id": 2
-            },
-            {
-                "eventId": 4,
-                "time": 11.526999999999985,
-                "game_id": 2
-            },
-            {
-                "eventId": 9,
-                "time": 12.729999999999976,
-                "game_id": 2
-            },
-            {
-                "eventId": 2,
-                "time": 13.129999999999981,
-                "game_id": 2
-            },
-            {
-                "eventId": 4,
-                "time": 15.331999999999974,
-                "game_id": 2
-            },
-            {
-                "eventId": 2,
-                "time": 15.832999999999974,
-                "game_id": 2
-            },
-            {
-                "eventId": 4,
-                "time": 15.832999999999974,
-                "game_id": 2
-            },
-            {
-                "eventId": 9,
-                "time": 18.236,
-                "game_id": 2
-            },
-            {
-                "eventId": 2,
-                "time": 18.437,
-                "game_id": 2
-            },
-            {
-                "eventId": 2,
-                "time": 21.04100000000003,
-                "game_id": 2
-            },
-            {
-                "eventId": 3,
-                "time": 21.04100000000003,
-                "game_id": 2
-            },
-        ]
-    };
-
-    base.score = score;
-    base.attempt_data.map((data) => {
-        data.time = ((data.time / 21.04100000000003) * score);
-
-        return data;
-    });
-
-    base.hash = hashFunc((2) + score.toString() + salt);
-
-    return base;
-}
-
-const wait = (time) => new Promise(resolve => setTimeout(resolve, time));
-
-app = express();
-
-app.use((req, res, next) => {
-    (async () => {
-        const topScore = parseFloat((await getleader()).leaderboard[0].score);
-        await wait(350);
-        console.log(topScore);
-        console.log('update', await update());
-        await wait(350);
-        console.log('addAtt', await addAtt());
-        await wait(2000);
-        console.log('updateAtt', await updateAtt(topScore * 0.99))
-        // setTimeout(async () => {
-        //     console.log('updateAtt', await updateAtt(topScore * 0.99))
-        // }, topScore * 1000);
-    })()
-
-    next('done');
-
+    
+    res.write(`/set-order?order={order}\n/set-top&username={username}&password={password}\n/set-top-by-name&name={name}`);
+    res.end();
 })
 
-app.listen(8080);
+app.get('/set-order', (req, res) => {
+    res.writeHead(200, {
+        'Content-Type': 'text/plain',
+        'Transfer-Encoding': 'chunked'
+    });    
+
+    const order = req.query['order'];
+
+    if (!order) {
+        res.write('Specify order');
+        return res.end();
+    }
+
+    const users = order.split(',');
+    const invalidUser = users.find(user => !inghaApi.userIsRegistered(user));
+
+    if (invalidUser) {
+        res.write(`User not registered: ${invalidUser}`);
+        return res.end();
+    }
+
+    inghaApi.setOutHandler(data => {
+        res.write(`Output: ${JSON.stringify(data)}\n`);
+    });
+
+    inghaApi.setOrder(order, (progress) => {
+        res.write(`${progress * 100}%\n`);
+        res.end();
+    }).then(() => {
+        res.write('Done\n');
+        res.end();
+    })
+});
+
+app.get('/set-top', (req, res) => {
+    res.writeHead(200, {
+        'Content-Type': 'text/plain',
+        'Transfer-Encoding': 'chunked'
+    });    
+    const { username, password, score = null } = req.query;
+
+    if (username && password) {
+        inghaApi.setOutHandler(data => {
+            res.write(`Output: ${JSON.stringify(data)}\n`);
+        });    
+
+        inghaApi.setTop(username, password, parseFloat(score)).then(() => {
+            res.write('Done\n');
+            res.end();
+        });
+    } else {
+        res.write('Parameters username and password are required');
+        res.end();
+    }
+});
+
+app.get('/set-top-by-name', (req, res) => {
+    res.writeHead(200, {
+        'Content-Type': 'text/plain',
+        'Transfer-Encoding': 'chunked'
+    });
+    const { name, score = null } = req.query;
+
+    if (!name) {
+        res.write('Parameter "name" is required');
+        return res.end();
+    } else {
+        inghaApi.setOutHandler(data => {
+            res.write(`Output: ${JSON.stringify(data)}\n`);
+        });    
+
+        inghaApi.setTopByName(name, parseFloat(score)).then(() => {
+            res.write('Done\n');
+            res.end();
+        });
+    }
+})
+
+app.get('/user-info/:user', async (req, res) => {
+    const { username, password } = inghaApi.getUserCredentials(req.params.user);
+    const data = await inghaApi.getUserInfoByCredentials(username, password);
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.contentType('application/json');
+    res.send(data);
+});
+
+app.get('/users', async (req, res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.send(inghaApi.getUsers());
+});
+
+app.get('/logged-in-url/:user', async (req, res) => {
+    const url = await inghaApi.getLoggedInUrlByName(req.params.user);
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.contentType('application/json');
+    res.send(url);
+});
+
+
+app.listen(80);

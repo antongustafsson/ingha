@@ -2,13 +2,13 @@ const fetch = require('node-fetch');
 const md5 = require('./md5');
 
 const getleader = async () => await (await fetch('https://games.app.ingoapp.com/api/games/2/leaderboard?period_id=216')).json();
-const cookie = 'PHPSESSID=vdvu9rr50jdhshgge8boj05g25';
+const cookie = 'PHPSESSID=1fdvhu9kbrm0l6j8r5inop5fg2';
 const headers = {
     cookie,
     'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_1_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.1 Mobile/15E148 Safari/604.1',
     'Origin': 'https://games.app.ingoapp.com',
     'Host': 'games.app.ingoapp.com',
-    'Referer': 'https://games.app.ingoapp.com/games/?token=nbzKR7TXmhVh7+tvudSjZ5AGj/GmSjuAzdSlIp4V89Vxn6uBWg0z+7zrs/7GsgztkUK75QB0vDpkwAPXvmsYkmaxXUnnEC3wB+5nnpYv2vU%3D&region=se&language=sv',
+    'Referer': 'https://games.app.ingoapp.com/games/?token=nbzKR7TXmhVh7+tvudSjZ5AGj/GmSjuAzdSlIp4V89Vxn6uBWg0z+7zrs/7GsgztkUK75QB0vDpkwAPXvmsYkmF7K0XhPW1qGZckx7UWQko%3D&region=se&language=sv',
     'X-Requested-With': 'XMLHttpRequest'
 };
 const update = async () => {
@@ -144,11 +144,13 @@ const genHist = (score) => {
     base.score = score;
     base.attempt_data.map((data) => {       
         data.time = ((data.time / 21.04100000000003) * score);
-        
+
+        // data.eventId = [9, 2, 4][Math.floor(Math.random() * 3)];
+
         return data;
     });
 
-    base.hash = hashFunc((2) + score.toString() + salt);
+    base.hash = hashFunc(2 + score.toString() + salt);
 
     return base;
 }
