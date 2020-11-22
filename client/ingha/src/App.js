@@ -14,7 +14,7 @@ function App() {
   useEffect(() => {
     (async () => {
       setLoading(true);
-      const response = await fetch('http://stacksnote.com/users');
+      const response = await fetch('/users');
       const users = await response.json();
 
       setUsers(users);
@@ -43,14 +43,14 @@ function App() {
   }, [selectedUser])
 
   const getUserLoggedInUrl = async (user) => {
-    const response = await fetch(`http://stacksnote.com/logged-in-url/${user}`);
+    const response = await fetch(`/logged-in-url/${user}`);
     const url = await response.text();
 
     return url;
   };
 
   const getUserInfo = async (user) => {
-    const response = await fetch(`http://stacksnote.com/user-info/${user}`);
+    const response = await fetch(`/user-info/${user}`);
     const info = await response.json();
 
     return info;
