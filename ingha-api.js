@@ -5,7 +5,11 @@ const md5 = require('./md5');
 const { URLSearchParams } = require('url');
 global.URLSearchParams = URLSearchParams
 
-const getLeader = async () => await (await fetch('https://games.app.ingoapp.com/api/games/2/leaderboard?period_id=216')).json();
+const getLeader = async () => {
+    const periodId = await getCurrentPeriodId();
+
+    return await (await fetch(`https://games.app.ingoapp.com/api/games/2/leaderboard?period_id=${periodId}`)).json();
+};
 const cookie = 'PHPSESSID=1fdvhu9kbrm0l6j8r5inop5fg2';
 const headers = {
     cookie,
@@ -17,6 +21,12 @@ const headers = {
 };
 
 let outHandlers = [];
+
+const getCurrentPeriodId = async () => {
+    const response = await fetch('https://games.app.ingoapp.com/api/games/current?region=se');
+
+    return (await response.json()).periodId;
+}
 
 const getPopulatedHeaders = (token, phpSessionId) => {
     return { ...headers, cookie: `PHPSESSID=${phpSessionId}; ingogames=${phpSessionId}`, Referer: `https://games.app.ingoapp.com/games/?token=${escape(token)}&region=se&language=sv` }
@@ -181,7 +191,7 @@ const setTop = async (username, password, score = null) => {
     await wait(350);
     logOutput('addAtt', await addAtt(token, phpSessionId));
     await wait(350);
-    logOutput('updateAtt', await updateAtt(token, phpSessionId, score === null ? (topScore * 0.99996) : score))
+    logOutput('updateAtt', await updateAtt(token, phpSessionId, score === null ? (topScore - 0.001) : score))
 };
 
 const getUsers = () => {
